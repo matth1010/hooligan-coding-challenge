@@ -2,11 +2,11 @@ import * as express from 'express'
 
 import { metricsMiddleware } from './middleware/metrics'
 import { AppDependencyParams } from './models'
-import { logger } from './infra/logger'
 
 export function createRouter({
   statsd,
-  storageService
+  storageService,
+  logger
 }: AppDependencyParams): express.Router {
   const router = express.Router()
 
@@ -29,7 +29,7 @@ export function createRouter({
     } catch (err) {
       statsd.increment(`storage_service_error`)
       logger.error(`Error in storage service: `, err)
-      res.status(502)
+      res.status(502).send()
     }
   })
 

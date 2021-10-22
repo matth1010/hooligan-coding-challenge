@@ -70,4 +70,4 @@ Capacity can be adjusted accordingly. DynamoDB is also designed for scalability 
 
 - ECS
 
-It has automatic scaling which is the ability to increase or decrease the desired count of tasks in your Amazon ECS service automaticallyvely.
+It has automatic scaling which is the ability to increase or decrease the desired count of tasks in your Amazon ECS service automatically

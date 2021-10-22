@@ -98,11 +98,31 @@ describe('routes', () => {
   it('should return 404 when no userID is provided', async (done: jest.DoneCallback) => {
     const getUserStreams = jest.fn()
     const dependencies = createDependencies(getUserStreams)
-    await createRequest(dependencies).get('/user/').expect(404)
+    await createRequest(dependencies)
+      .get('/user/')
+      .expect(404)
     done()
   })
 
-  it.todo(
-    'should return 502 and increment the metric count and log when receiving AWS errors'
-  )
+  it('should return 502 and increment the metric count and log when receiving AWS errors', async (done: jest.DoneCallback) => {
+    const error = new Error('fake error')
+    const getUserStreams = jest.fn().mockRejectedValueOnce(error)
+    const logger = getFakeLogger()
+    const dependencies = createDependencies(getUserStreams, { logger })
+    await createRequest(dependencies)
+      .get('/user/1')
+      .expect(502)
+      .then((response: request.Response) => {
+        expect(response.error).not.toBe(false)
+        expect(response.body).toEqual({})
+        expect(dependencies.statsd.increment).toHaveBeenCalledWith(
+          'storage_service_error'
+        )
+        expect(dependencies.logger.error).toHaveBeenCalledWith(
+          `Error in storage service: `, error
+        )
+        done()
+      })
+  })
+
 })
