@@ -14,4 +14,4 @@ $ npm run dev
 
 - NodeJS stateless service
 - DynamoDB database
-- Logging and metrics: Datadogog
+- Logging and metrics: Datadog
