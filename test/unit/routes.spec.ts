@@ -48,7 +48,7 @@ describe('routes', () => {
       const dependencies = createDependencies(getUserStreams)
       const request = createRequest(dependencies)
       return request
-        .get('/')
+        .get('/user/1')
         .expect(200)
         .then((response: request.Response) => {
           expect(response.error).toBe(false)
@@ -71,7 +71,7 @@ describe('routes', () => {
     })
     const request = createRequest(dependencies)
     return request
-      .get('/')
+      .get('/user/1')
       .expect(429)
       .then((response: request.Response) => {
         expect(response.error).not.toBe(false)
@@ -88,5 +88,7 @@ describe('routes', () => {
       })
   })
 
-  it.todo('should increment the metric count and log when receiving AWS errors')
+  it.todo('should return 400 when no userID is provided')
+  it.todo('should return 404 when no userID is found')
+  it.todo('should return 502 and increment the metric count and log when receiving AWS errors')
 })

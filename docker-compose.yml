@@ -1,0 +1,61 @@
+version: "3"
+services:
+  web:
+    build: .
+    environment:
+      - ENV=local
+      - LOG_LEVEL=debug
+      - NODE_ENV=dev
+      - PORT=8000
+      - STATSD_ENABLED=true
+      - STATSD_HOST=datadog
+      - STATSD_PORT=8125
+      - AWS_DYNAMODB_ENDPOINT=http://localstack:4569
+      - AWS_ACCESS_KEY_ID=local
+      - AWS_SECRET_ACCESS_KEY=local
+      - AWS_REGION=us-east-1
+    ports:
+      - "8000:8000"
+      - "5858:5858"
+    links:
+      - datadog
+      - localstack
+    volumes:
+    - ./src:/usr/src/app/src
+    - ./test:/usr/src/app/test
+    - ./package.json:/usr/src/app/package.json
+    command: npm run dev
+
+  datadog:
+    image: alpine/socat
+    command: "-d -v UDP-LISTEN:8125,crlf,reuseaddr,fork -"
+    expose:
+      - "8125/udp"
+
+  localstack:
+    image: localstack/localstack:0.10.6
+    ports:
+      - "4567-4584:4567-4584"
+    environment:
+      - SERVICES=dynamodb
+      - DEBUG=
+      - DATA_DIR=/tmp/data
+      - PORT_WEB_UI=11071
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - discovery.type=single-node
+    volumes:
+      - "./tmp/localstack:/tmp/localstack"
+
+  seed-dynamoDB:
+    image: mikesir87/aws-cli
+    environment:
+      - AWS_ACCESS_KEY_ID=local
+      - AWS_SECRET_ACCESS_KEY=local
+    command: aws --region=us-east-1 --endpoint-url=http://localstack:4569 dynamodb create-table --table-name streamsPerUser --attribute-definitions AttributeName=userID,AttributeType=S --key-schema AttributeName=userID,KeyType=HASH --provisioned-throughput ReadCapacityUnits=10,WriteCapacityUnits=10 
+
+  wait:
+    image: waisbrot/wait
+    environment:
+      - TARGETS=localstack:4569
+    links:
+      - "localstack"

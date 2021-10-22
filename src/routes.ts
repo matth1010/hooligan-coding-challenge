@@ -11,9 +11,9 @@ export function createRouter({
   const router = express.Router()
 
   router.use(metricsMiddleware(statsd))
-  router.get('/', async (_, res) => {
+  router.get('/user/:userID', async (req, res) => {
     try {
-      const userID = '1'
+      const { userID } = req.params
       const streams = await storageService.getUserStreams(userID)
       const maxNumberOfStreams = 3
       if (streams > maxNumberOfStreams) {
@@ -27,7 +27,7 @@ export function createRouter({
       }
     } catch (err) {
       statsd.increment(`storage_service_error`)
-      logger.error(`Error in storage service`, err)
+      logger.error(`Error in storage service: `, err)
       res.status(502)
     }
   })

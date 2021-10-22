@@ -15,3 +15,7 @@ $ npm run dev
 - NodeJS stateless service
 - DynamoDB database
 - Logging and metrics: Datadog
+
+## Endpoints
+
+- http://localhost:8000/user/1
