@@ -48,6 +48,11 @@ function getConfig(): convict.Config<any> {
         default: '',
         env: 'AWS_DYNAMODB_ENDPOINT',
         format: String
+      },
+      tableName: {
+        default: 'streamsPerUser',
+        env: 'AWS_DYNAMODB_TABLE',
+        format: String
       }
     }
   })

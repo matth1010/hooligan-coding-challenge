@@ -9,8 +9,4 @@ const createLogger = (): winston.Logger =>
     transports: [new winston.transports.Console()]
   })
 
-export let log = createLogger()
-
-export const setLogger = (newLogger: winston.Logger) => {
-  log = newLogger
-}
+export const logger = createLogger()

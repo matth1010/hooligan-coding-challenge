@@ -2,13 +2,34 @@ import * as express from 'express'
 
 import { metricsMiddleware } from './middleware/metrics'
 import { AppDependencyParams } from './models'
+import { logger } from './infra/logger'
 
-export function createRouter(options: AppDependencyParams): express.Router {
+export function createRouter({
+  statsd,
+  storageService
+}: AppDependencyParams): express.Router {
   const router = express.Router()
 
-  router.use(metricsMiddleware(options.statsd))
-  router.get('/', (_, res) => {
-    res.send()
+  router.use(metricsMiddleware(statsd))
+  router.get('/', async (_, res) => {
+    try {
+      const userID = '1'
+      const streams = await storageService.getUserStreams(userID)
+      const maxNumberOfStreams = 3
+      if (streams > maxNumberOfStreams) {
+        statsd.increment(`max_quota_reached`)
+        statsd.increment(`max_quota_reached:${userID}`)
+        res.status(429).send({
+          error: `Sorry, the maximum number of streams to watch at the same time are ${maxNumberOfStreams}`
+        })
+      } else {
+        res.send()
+      }
+    } catch (err) {
+      statsd.increment(`storage_service_error`)
+      logger.error(`Error in storage service`, err)
+      res.status(502)
+    }
   })
 
   return router

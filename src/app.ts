@@ -1,7 +1,7 @@
 import * as express from 'express'
 import * as morgan from 'morgan'
 import * as http from 'http'
-import { log } from './infra/logger'
+import { logger } from './infra/logger'
 import { createRouter } from './routes'
 import { AppDependencyParams } from './models'
 import { AddressInfo } from 'net'
@@ -35,7 +35,7 @@ export const createApp = (appDependencies: AppDependencyParams) => {
       error: err,
       intelEvent: req.body
     }
-    log.error(JSON.stringify(loggerMessage))
+    logger.error(JSON.stringify(loggerMessage))
     appDependencies.statsd.increment('error')
     res.sendStatus(500)
   })
@@ -43,7 +43,7 @@ export const createApp = (appDependencies: AppDependencyParams) => {
   const startApp = async (): Promise<AppServer> => {
     return new Promise<AppServer>(resolve => {
       const server = app.listen(appDependencies.config.get('port'), () => {
-        log.info(`Started on port ${(server.address() as AddressInfo).port}`)
+        logger.info(`Started on port ${(server.address() as AddressInfo).port}`)
         return resolve()
       })
     })
