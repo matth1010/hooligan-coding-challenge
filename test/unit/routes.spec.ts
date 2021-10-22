@@ -1,7 +1,6 @@
 import * as request from 'supertest'
 import { config } from '../../src/infra/config'
 import { logger } from '../../src/infra/logger'
-import { statsd } from '../../src/infra/statsd'
 import { createApp } from '../../src/app'
 import { AppDependencyParams } from '../../src/models'
 import { StatsD } from 'node-statsd'
@@ -9,18 +8,6 @@ import { StatsD } from 'node-statsd'
 const createRequest = (dependencies: AppDependencyParams) => {
   const { app } = createApp(dependencies)
   return request(app)
-}
-
-const createDependencies = (getUserStreams, overrides = {}) => {
-  return {
-    statsd,
-    config,
-    logger,
-    ...overrides,
-    storageService: {
-      getUserStreams
-    }
-  }
 }
 
 function getFakeLogger() {
@@ -40,22 +27,41 @@ function getFakeStatsd(): StatsD {
   } as any) as StatsD
 }
 
+const createDependencies = (getUserStreams, overrides = {}) => {
+  return {
+    statsd: getFakeStatsd(),
+    config,
+    logger,
+    ...overrides,
+    storageService: {
+      getUserStreams
+    }
+  }
+}
+
 describe('routes', () => {
-  it.each([1, 2, 3])(
+  it.each<any>([1, 2])(
     'should return 200 for %s streams for an user',
-    (streams: number) => {
+    async (streams: number, done: jest.DoneCallback) => {
       const getUserStreams = jest.fn(() => streams)
       const dependencies = createDependencies(getUserStreams)
-      const request = createRequest(dependencies)
-      return request
+      return await createRequest(dependencies)
         .get('/user/1')
         .expect(200)
         .then((response: request.Response) => {
           expect(response.error).toBe(false)
           expect(response.body).toEqual({})
+          done()
         })
     }
   )
+
+  it('should return 200 when no userID is found', () => {
+    const getUserStreams = jest.fn(() => undefined)
+    const dependencies = createDependencies(getUserStreams)
+    const request = createRequest(dependencies)
+    return request.get('/user/fakeID').expect(200)
+  })
 
   it('should return 404 for any other route', () => {
     const getUserStreams = jest.fn()
@@ -64,31 +70,39 @@ describe('routes', () => {
     return request.get('/fake').expect(404)
   })
 
-  it('should return 429 when the when user consuming more than 3 contents', () => {
-    const getUserStreams = jest.fn(() => 4)
-    const dependencies = createDependencies(getUserStreams, {
-      statsd: getFakeStatsd()
-    })
-    const request = createRequest(dependencies)
-    return request
-      .get('/user/1')
-      .expect(429)
-      .then((response: request.Response) => {
-        expect(response.error).not.toBe(false)
-        expect(response.body).toEqual({
-          error:
-            'Sorry, the maximum number of streams to watch at the same time are 3'
+  it.each<any>([3, 4])(
+    'should return 429 when the when user consuming %s contents',
+    async (streams: number, done: jest.DoneCallback) => {
+      const getUserStreams = jest.fn(() => streams)
+      const dependencies = createDependencies(getUserStreams)
+      await createRequest(dependencies)
+        .get('/user/1')
+        .expect(429)
+        .then((response: request.Response) => {
+          expect(response.error).not.toBe(false)
+          expect(response.body).toEqual({
+            error:
+              'Sorry, the maximum number of streams to watch at the same time are 3'
+          })
+          expect(dependencies.statsd.increment).toHaveBeenCalledWith(
+            'max_quota_reached'
+          )
+          expect(dependencies.statsd.increment).toHaveBeenCalledWith(
+            'max_quota_reached:1'
+          )
+          done()
         })
-        expect(dependencies.statsd.increment).toHaveBeenCalledWith(
-          'max_quota_reached'
-        )
-        expect(dependencies.statsd.increment).toHaveBeenCalledWith(
-          'max_quota_reached:1'
-        )
-      })
+    }
+  )
+
+  it('should return 404 when no userID is provided', async (done: jest.DoneCallback) => {
+    const getUserStreams = jest.fn()
+    const dependencies = createDependencies(getUserStreams)
+    await createRequest(dependencies).get('/user/').expect(404)
+    done()
   })
 
-  it.todo('should return 400 when no userID is provided')
-  it.todo('should return 404 when no userID is found')
-  it.todo('should return 502 and increment the metric count and log when receiving AWS errors')
+  it.todo(
+    'should return 502 and increment the metric count and log when receiving AWS errors'
+  )
 })

@@ -17,7 +17,7 @@
     "fix:lint": "tslint -p tsconfig.json --fix",
     "test": "jest test --detectOpenHandles --forceExit",
     "dev": "TS_NODE_PROJECT=tsconfig.json TS_NODE_FILES=true nodemon --watch ./src --exec 'node --inspect=0.0.0.0:5858 -r ts-node/register' src/index.ts",
-    "watch-test": "nodemon -x 'npm run test'",
+    "seed-storage": "ts-node ./scripts/seed-storage.ts",
     "prettier": "prettier --config .prettierrc.js --write './+(src|test)/**/*'"
   },
   "author": "matth1010@gmail.com",

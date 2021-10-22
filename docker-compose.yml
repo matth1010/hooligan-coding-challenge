@@ -5,9 +5,7 @@ services:
     environment:
       - ENV=local
       - LOG_LEVEL=debug
-      - NODE_ENV=dev
       - PORT=8000
-      - STATSD_ENABLED=true
       - STATSD_HOST=datadog
       - STATSD_PORT=8125
       - AWS_DYNAMODB_ENDPOINT=http://localstack:4569
@@ -46,7 +44,7 @@ services:
     volumes:
       - "./tmp/localstack:/tmp/localstack"
 
-  seed-dynamoDB:
+  create-storage:
     image: mikesir87/aws-cli
     environment:
       - AWS_ACCESS_KEY_ID=local

@@ -6,7 +6,7 @@ ADD package-lock.json ./
 RUN npm ci
 
 ADD . .
-# RUN npm run build
+RUN npm run build
 
 EXPOSE 8000
 CMD npm start

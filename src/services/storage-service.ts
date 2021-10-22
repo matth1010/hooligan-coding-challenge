@@ -14,7 +14,7 @@ export const createStorageService = (config: Config<any>): StorageService => {
   const getUserStreams = async (userID: string): Promise<number> => {
     const params = { TableName: tableName, Key: { userID } }
     const result = await docClient.get(params).promise()
-    return result.Item.streams
+    return Number(result.Item?.streams)
   }
 
   return { getUserStreams }

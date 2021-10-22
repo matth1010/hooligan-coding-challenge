@@ -16,14 +16,15 @@ export function createRouter({
       const { userID } = req.params
       const streams = await storageService.getUserStreams(userID)
       const maxNumberOfStreams = 3
-      if (streams > maxNumberOfStreams) {
+      if (streams >= maxNumberOfStreams) {
         statsd.increment(`max_quota_reached`)
         statsd.increment(`max_quota_reached:${userID}`)
         res.status(429).send({
           error: `Sorry, the maximum number of streams to watch at the same time are ${maxNumberOfStreams}`
         })
-      } else {
-        res.send()
+      }
+      else {
+        res.status(200).send()
       }
     } catch (err) {
       statsd.increment(`storage_service_error`)
