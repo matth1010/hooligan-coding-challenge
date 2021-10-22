@@ -1,5 +1,8 @@
 # Hooligan Coding Challenge
 
+Build a service in Node.js that exposes an API which can be consumed from any client. This service must check how many video streams a given user is watching and prevent a user watching more than 3 video streams concurrently.
+
+
 ## Running the app locally
 
 Checkout the project in GitHub, then run the following commands in the root directory:
@@ -58,3 +61,13 @@ For the application to work the following env variables MUST be provided (see mo
 ```
 
 In addition for local development to mock `DynamoDB` the env variable `AWS_DYNAMODB_ENDPOINT` could be provided.
+
+## Scalability
+
+- DynamoDB
+
+Capacity can be adjusted accordingly. DynamoDB is also designed for scalability of resources to meet storage and throughput requirements.
+
+- ECS
+
+It has automatic scaling which is the ability to increase or decrease the desired count of tasks in your Amazon ECS service automaticallyvely.
