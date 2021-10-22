@@ -15,7 +15,7 @@ function getConfig(): convict.Config<any> {
       doc: 'Component name to use in metrics and logging',
       format: String,
       env: 'COMPONENT_NAME',
-      default: 'dazn-coding-challenge'
+      default: 'hooligan-coding-challenge'
     },
     port: {
       doc: 'Port for starting the app on.',
